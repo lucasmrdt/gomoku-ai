@@ -16,10 +16,11 @@ class Brain(ABrain):
   def make_move(self, x: int, y: int):
     self.board.player_move(Player.ME, x, y)
 
-  def get_incrementation_from_way(self, player, position, direction_index, way):
+  def get_point_from_way(self, position, direction_index, way):
     # Take the current cell
     x, y = position
     cell = self.board.matrix[y][x]
+    cell_points = cell.points_by_directions[direction_index]
 
     # Take the neighbour cell from the direction
     neighbour_x, neighbour_y = map(operator.add, position, way)
@@ -28,29 +29,30 @@ class Brain(ABrain):
     neighbour_cell = self.board.matrix[neighbour_y][neighbour_x]
 
     # Get the neighbour owner
-    neighbour_owner = neighbour_cell.owner if neighbour_cell.owner != Player.NOBODY else player
+    my = neighbour_cell.owner if neighbour_cell.owner != Player.NOBODY else cell.owner
 
     # Get the neighbour_owner value and her opponent value to.
-    player_value = cell.points_by_directions[direction_index][neighbour_owner.index()]
-    opponent_value = cell.points_by_directions[direction_index][neighbour_owner.opponent_index()]
+    my_value = cell_points[my.index()]
+    opponent_value = cell_points[my.opponent_index()]
 
-    if neighbour_cell.owner == Player.NOBODY:
-      incr = player_value
-    else:
-      incr = 0
+    # Dispatched value is by default the current value
+    point = my_value
 
-    if neighbour_owner == Player.NOBODY or neighbour_owner == player:
-      incr += (opponent_value == 0)
-    else:
-      incr += -1
+    # If their is no opponent next to current cell, we increment the lenght of the threat
+    if opponent_value == 0:
+      point += 1
 
-    return incr
+    # If the move is made by the opponent, position is now closed so we decrement point
+    if my != cell.owner:
+      point -= 1
+
+    return point
 
   def update_new_way_point(self, default_player, position, direction_index, way):
     player = None
     board_size = self.board.size
     matrix = self.board.matrix
-    incr = self.get_incrementation_from_way(default_player, position, direction_index, way)
+    point = self.get_point_from_way(position, direction_index, way)
 
     while True:
       position = tuple(map(operator.add, position, way))
@@ -68,11 +70,11 @@ class Brain(ABrain):
       # If we found an different player that the first met, we stop propagate the new way value.
       if cell.owner != player:
         if cell.is_free():
-          cell.points_by_directions[direction_index][player.index()] += incr
+          cell.points_by_directions[direction_index][player.index()] = point
           cell.compute_weight()
         break
 
-      cell.points_by_directions[direction_index][player.index()] += incr
+      cell.points_by_directions[direction_index][player.index()] = point
       cell.compute_weight()
 
 

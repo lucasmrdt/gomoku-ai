@@ -2,6 +2,8 @@ from .player import Player
 from abstract import ABoard
 from settings import DEFAULT_BOARD_SIZE
 
+import os
+
 class Cell:
   BALANCE = 0.8
   DIRECTIONS = [
@@ -45,6 +47,8 @@ class Board(ABoard):
   avaible_positions = []
   move_listeners = []
 
+  move_idx = 0
+
   def __init__(self):
     self.size = DEFAULT_BOARD_SIZE
     self.initialize()
@@ -73,6 +77,12 @@ class Board(ABoard):
     self.avaible_positions.remove((x, y))
     for listener in self.move_listeners:
       listener(player, x, y)
+
+    with open(os.path.join(os.environ['HOMEPATH'], 'debug.txt'), 'a') as f:
+      debug = '\n'.join(' '.join(map(str, line)) for line in self.matrix)
+      f.write(f'MOVE {self.move_idx}:\n{debug}\n\n')
+      f.flush()
+      self.move_idx += 1
 
   def refresh_board(self, new_positions):
     assert self.is_empty(), 'you must first clear the board before refresh it'
