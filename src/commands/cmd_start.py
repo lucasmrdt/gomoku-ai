@@ -15,5 +15,6 @@ class CMD_START(Command):
       raise InvalidParamsCommand(f'size must be an integer')
 
     self.game.is_running = True
-    self.game.board.initialize(size)
+    self.game.board.set_size(size)
+    self.game.board.reset()
     self.send_ok()

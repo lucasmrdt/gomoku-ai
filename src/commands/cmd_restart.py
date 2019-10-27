@@ -8,6 +8,6 @@ class CMD_RESTART(Command):
 
   def run(self):
     self.game.is_running = True
-    self.game.board.clear_board()
+    self.game.board.reset()
     self.game.brain.reset()
     self.send_ok()

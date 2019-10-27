@@ -7,18 +7,16 @@ class ABoard(ABC):
   move_listeners: [] # Move listeners
 
   @abstractmethod
-  def listen_player_move(self, fct):
-    """Listen all player move.
-
-    fct -- Listener called with arguments (player, x, y)
-    """
-
-  @abstractmethod
-  def initialize(self, size):
+  def set_size(self, size):
     """Set the board size.
 
     size -- the size integer (must be > 0)
     """
+    raise NotImplementedError()
+
+  @abstractmethod
+  def initialize(self):
+    """Initialize the matrix board and availables_moves."""
     raise NotImplementedError()
 
 
@@ -33,7 +31,7 @@ class ABoard(ABC):
     raise NotImplementedError()
 
   @abstractmethod
-  def clear_board(self):
+  def reset(self):
     """Clear the entire board."""
     raise NotImplementedError()
 
@@ -44,6 +42,14 @@ class ABoard(ABC):
     new_positions -- List of (x, y, player) with player is OPPONENT or ME
     """
     raise NotImplementedError()
+
+
+  @abstractmethod
+  def listen_player_move(self, fct):
+    """Listen all player move.
+
+    fct -- Listener called with arguments (player, x, y)
+    """
 
   @abstractmethod
   def is_empty(self) -> bool:

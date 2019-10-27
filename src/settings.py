@@ -9,3 +9,5 @@ INFORMATIONS = {
   'author': AUTHOR,
   'country': COUNTRY
 }
+
+DEFAULT_BOARD_SIZE = 19

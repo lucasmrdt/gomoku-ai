@@ -1,5 +1,6 @@
 from .player import Player
 from abstract import ABoard
+from settings import DEFAULT_BOARD_SIZE
 
 class Board(ABoard):
   matrix = None
@@ -7,19 +8,23 @@ class Board(ABoard):
   avaible_positions = []
   move_listeners = []
 
-  def listen_player_move(self, fct):
-    self.move_listeners.append(fct)
+  def __init__(self):
+    self.size = DEFAULT_BOARD_SIZE
+    self.initialize()
 
-  def initialize(self, size=None):
-    size = size if size else self.size
+  def set_size(self, size):
     assert 0 < size <= 20, 'Size must be contains in ]0, 20]'
-
     self.size = size
+
+  def initialize(self):
+    size = self.size
     self.matrix = [[Player.NOBODY for _ in range(size)] for _ in range(size)]
     self.avaible_positions = [(i//size, i%size) for i in range(size*size)]
 
+  def reset(self):
+    self.initialize()
+
   def player_move(self, player: Player, x: int, y: int):
-    assert self.matrix, 'board must be initialized before making move'
     assert isinstance(player, Player), 'player must be instance of Player'
     assert player.isSomeone(), 'player must be OPPONENT or ME'
     assert 0 <= x < self.size, f'x must be contains in range [0,{self.size}['
@@ -31,12 +36,8 @@ class Board(ABoard):
     for listener in self.move_listeners:
       listener(player, x, y)
 
-  def clear_board(self):
-    assert self.size, 'size must be specified before clear'
-    self.initialize()
-
   def refresh_board(self, new_positions):
-    assert self.matrix, 'you must first initialize the board size'
+    assert self.matrix, 'board must be initialized before making refresh'
     assert self.is_empty(), 'you must first clear the board before refresh it'
 
     for x, y, player in new_positions:
@@ -47,10 +48,11 @@ class Board(ABoard):
 
       self.matrix[y][x] = player
 
+  def listen_player_move(self, fct):
+    self.move_listeners.append(fct)
+
   def is_empty(self):
-    assert self.matrix, 'you must first initialize the board size'
     return all(all(player == Player.NOBODY for player in line) for line in self.matrix)
 
   def is_free(self, x, y):
-    assert self.matrix, 'you must first initialize the board size'
     return self.matrix[y][x] == Player.NOBODY
