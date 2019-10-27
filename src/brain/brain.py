@@ -39,7 +39,7 @@ class Brain(ABrain):
     point = my_value
 
     # If their is no opponent next to current cell, we increment the lenght of the threat
-    if opponent_value == 0:
+    if opponent_value == 0 and my == cell.owner:
       point += 1
 
     # If the move is made by the opponent, position is now closed so we decrement point
@@ -119,13 +119,13 @@ class Brain(ABrain):
     # Not implemented yet, just make random move
     board = self.board
     x, y = self.get_mandatory_moves()
-    if not x or not y:
-      if self.suggested_moves:
-        selected_position = random.randint(0, len(self.suggested_moves)-1)
-        x, y = list(self.suggested_moves)[selected_position]
-      else:
-        selected_position = random.randint(0, len(board.avaible_positions)-1)
-        x, y = board.avaible_positions[selected_position]
+    # if not x or not y:
+    #   if self.suggested_moves:
+    #     selected_position = random.randint(0, len(self.suggested_moves)-1)
+    #     x, y = list(self.suggested_moves)[selected_position]
+    #   else:
+    #     selected_position = random.randint(0, len(board.avaible_positions)-1)
+    #     x, y = board.avaible_positions[selected_position]
 
     self.make_move(x, y)
     return x, y

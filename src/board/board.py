@@ -77,12 +77,14 @@ class Board(ABoard):
     self.avaible_positions.remove((x, y))
     for listener in self.move_listeners:
       listener(player, x, y)
+    # print('\n'.join(' '.join(map(str, line)) for line in self.matrix))
+    # print()
 
-    with open(os.path.join(os.environ['HOMEPATH'], 'debug.txt'), 'a') as f:
-      debug = '\n'.join(' '.join(map(str, line)) for line in self.matrix)
-      f.write(f'MOVE {self.move_idx}:\n{debug}\n\n')
-      f.flush()
-      self.move_idx += 1
+    # with open(os.path.join(os.environ['HOMEPATH'], 'debug.txt'), 'a') as f:
+    #   debug = '\n'.join(' '.join(map(str, line)) for line in self.matrix)
+    #   f.write(f'MOVE {self.move_idx}:\n{debug}\n\n')
+    #   f.flush()
+    #   self.move_idx += 1
 
   def refresh_board(self, new_positions):
     assert self.is_empty(), 'you must first clear the board before refresh it'
