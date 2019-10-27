@@ -24,9 +24,11 @@ class IO():
 
   def write_error(self, message):
     ERROR_STREAM.write(f'{message}\n')
+    ERROR_STREAM.flush()
 
   def write_standard(self, string):
     OUTPUT_STREAM.write(f'{string}\n')
+    OUTPUT_STREAM.flush()
 
   def get_next_command(self):
     return self.__read_until(COMMAND_SPLITTER).strip()
