@@ -46,6 +46,8 @@ class Board(ABoard):
       assert isinstance(player, Player), 'player must be instance of Player'
       assert player.isSomeone(), 'player must be OPPONENT or ME'
 
+      for listener in self.move_listeners:
+        listener(player, x, y)
       self.matrix[y][x] = player
 
   def listen_player_move(self, fct):
