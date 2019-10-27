@@ -5,7 +5,7 @@ from settings import DEFAULT_BOARD_SIZE
 import os
 
 class Cell:
-  BALANCE = 0.8
+  BALANCE = 0.85
   DIRECTIONS = [
     # format (y, x)
     ((1, 0), (-1, 0)),  # Vertical line

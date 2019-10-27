@@ -41,7 +41,7 @@ class Brain(ABrain):
     point = my_value
 
     if neighbour_cell.owner == Player.NOBODY:
-      point += 1
+      point += neighbour_value
 
     # If their is no opponent next to current cell, we increment the lenght of the threat
     if opponent_value == 0 and my == cell.owner:
@@ -49,15 +49,15 @@ class Brain(ABrain):
 
     # If the move is made by the opponent, position is now closed so we decrement point
     if my != cell.owner:
-      point -= 1
+      return None, -1
 
-    return point
+    return point, None
 
   def update_new_way_point(self, default_player, position, direction_index, way):
     player = None
     board_size = self.board.size
     matrix = self.board.matrix
-    point = self.get_point_from_way(position, direction_index, way)
+    point, incr = self.get_point_from_way(position, direction_index, way)
 
     while True:
       position = tuple(map(operator.add, position, way))
@@ -75,11 +75,17 @@ class Brain(ABrain):
       # If we found an different player that the first met, we stop propagate the new way value.
       if cell.owner != player:
         if cell.is_free():
-          cell.points_by_directions[direction_index][player.index()] = point
+          if incr:
+            cell.points_by_directions[direction_index][player.index()] += incr
+          else:
+            cell.points_by_directions[direction_index][player.index()] = point
           cell.compute_weight()
         break
 
-      cell.points_by_directions[direction_index][player.index()] = point
+      if incr:
+        cell.points_by_directions[direction_index][player.index()] += incr
+      else:
+        cell.points_by_directions[direction_index][player.index()] = point
       cell.compute_weight()
 
 
@@ -118,6 +124,8 @@ class Brain(ABrain):
           target_y = y
     if imminent_threats:
       return imminent_threats[0]
+    elif target_weight == 0:
+      return self.board.size//2, self.board.size//2
     return target_x, target_y
 
   def turn(self):
