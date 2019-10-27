@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import traceback
 
 from board import Board, Player
 from brain import Brain

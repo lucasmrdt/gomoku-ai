@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 
-from .game import AGame
+from .abc_game import AGame
 
 class ACommand(ABC):
   game: AGame

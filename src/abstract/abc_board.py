@@ -60,3 +60,8 @@ class ABoard(ABC):
   def is_free(self, x, y) -> bool:
     """Test if cell at (x, y) in board is free."""
     raise NotImplementedError()
+
+  @abstractmethod
+  def is_valid_coordinate(self, x, y):
+    """Test if (x, y) is a valid coordinate."""
+    raise NotImplementedError()

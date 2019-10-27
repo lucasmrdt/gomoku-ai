@@ -4,7 +4,7 @@ from settings import DEFAULT_BOARD_SIZE
 
 class Cell:
   BALANCE = 0.85
-  LINES = [
+  DIRECTIONS = [
     ((0, 1), (0, -1)),  # Vertical line
     ((1, 0), (-1, 0)),  # Horizontal line
     ((1, 1), (-1, -1)), # Diagonal line (up-right to bottom-left)
@@ -12,17 +12,30 @@ class Cell:
   ]
 
   def __init__(self):
-    self.points_by_lines = [(0, 0) for _ in self.LINES]
+    self.points_by_directions = [[0, 0] for _ in self.DIRECTIONS]
     self.owner = Player.NOBODY
     self.weight = 0
+
+  def __str__(self):
+    return '[' + ','.join(':'.join(map(str, points)) for points in self.points_by_directions) + ']'
+
+  def is_free(self):
+    return self.owner == Player.NOBODY
 
   def is_active_direction(self, direction):
     return direction != (0, 0)
 
   def compute_weight(self):
-    nb_active_directions = len(filter(self.is_active_direction, self.points_by_lines))
-    total_points = sum(abs(a - b) for a, b in self.points_by_lines)
-    self.weight = total_points * self.BALANCE**nb_active_directions
+    players_orders = [(0, 1), (1, 0)]
+    weights = []
+
+    for player_a, player_b in players_orders:
+      active_directions = filter(lambda x: x[player_a], self.points_by_directions)
+      total_points = sum(abs(direction[player_a] - min(1, direction[player_b])) for direction in active_directions)
+      weight = total_points * self.BALANCE**len(active_directions)
+      weights.append(weight)
+    a, b = sorted(weights)
+    self.weight = a + b*.15
 
 class Board(ABoard):
   matrix = None
@@ -35,7 +48,7 @@ class Board(ABoard):
     self.initialize()
 
   def set_size(self, size):
-    assert 0 < size <= 20, 'Size must be contains in ]0, 20]'
+    assert 0 < size <= 20, 'size must be contains in ]0, 20]'
     self.size = size
 
   def initialize(self):
@@ -52,9 +65,9 @@ class Board(ABoard):
     assert player.isSomeone(), 'player must be OPPONENT or ME'
     assert 0 <= x < self.size, f'x must be contains in range [0,{self.size}['
     assert 0 <= y < self.size, f'y must be contains in range [0,{self.size}['
-    assert self.matrix[y][x] == Player.NOBODY, f'cell at ({x},{y}) is already busy'
+    assert self.is_free(x, y), f'cell at ({x},{y}) is already busy'
 
-    self.matrix[y][x] = player
+    self.matrix[y][x].owner = player
     self.avaible_positions.remove((x, y))
     for listener in self.move_listeners:
       listener(player, x, y)
@@ -69,7 +82,10 @@ class Board(ABoard):
     self.move_listeners.append(fct)
 
   def is_empty(self):
-    return all(all(player == Player.NOBODY for player in line) for line in self.matrix)
+    return all(all(cell.owner == Player.NOBODY for cell in line) for line in self.matrix)
 
   def is_free(self, x, y):
-    return self.matrix[y][x] == Player.NOBODY
+    return self.matrix[y][x].owner == Player.NOBODY
+
+  def is_valid_coordinate(self, x, y):
+    return  0 <= x < self.size and 0 <= y < self.size

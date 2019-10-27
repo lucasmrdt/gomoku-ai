@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 
-from .board import ABoard
+from .abc_board import ABoard
 
 class ABrain(ABC):
   board: ABoard

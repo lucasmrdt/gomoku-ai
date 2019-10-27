@@ -1,8 +1,8 @@
 from abc import ABC, abstractmethod
 
-from .board import ABoard
-from .protocol import AProtocol
-from .brain import ABrain
+from .abc_board import ABoard
+from .abc_protocol import AProtocol
+from .abc_brain import ABrain
 
 class AGame(ABC):
   board: ABoard
