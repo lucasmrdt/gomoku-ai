@@ -27,4 +27,5 @@ class CMD_BOARD(Command):
       new_board_positions.append((x, y, player))
 
     board.refresh_board(new_board_positions)
-    self.send_ok()
+    x, y = self.game.brain.turn()
+    self.send_position(x, y)
