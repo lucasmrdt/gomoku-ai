@@ -24,7 +24,7 @@ class Brain(ABrain):
     # Take the neighbour cell from the direction
     neighbour_x, neighbour_y = map(operator.add, position, way)
     if not self.board.is_valid_coordinate(neighbour_x, neighbour_y):
-      return 0
+      return 0, 0
     neighbour_cell = self.board.matrix[neighbour_y][neighbour_x]
 
     # Get the neighbour owner
