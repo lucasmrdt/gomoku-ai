@@ -10,6 +10,7 @@ build:	$(NAME)
 
 clean:
 	rm -rf **/__pycache__
+	find . -name "*.pyc" -delete
 	rm -rf build
 	rm -rf dist
 
