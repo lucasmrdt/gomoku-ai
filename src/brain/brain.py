@@ -20,7 +20,6 @@ class Brain(ABrain):
     # Take the current cell
     x, y = position
     cell = self.board.matrix[y][x]
-    cell_points = cell.points_by_directions[direction_index]
 
     # Take the neighbour cell from the direction
     neighbour_x, neighbour_y = map(operator.add, position, way)
@@ -29,10 +28,12 @@ class Brain(ABrain):
     neighbour_cell = self.board.matrix[neighbour_y][neighbour_x]
 
     # Get the neighbour owner
+    cell_points = cell.points_by_directions[direction_index]
+    neighbour_points = neighbour_cell.points_by_directions[direction_index]
     my = neighbour_cell.owner if neighbour_cell.owner != Player.NOBODY else cell.owner
 
     # Get the neighbour_owner value and her opponent value to.
-    my_value = cell_points[my.index()]
+    my_value = neighbour_points[my.index()]
     opponent_value = cell_points[my.opponent_index()]
 
     # Dispatched value is by default the current value
