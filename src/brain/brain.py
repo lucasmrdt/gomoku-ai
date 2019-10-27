@@ -49,7 +49,7 @@ class Brain(ABrain):
 
     # If the move is made by the opponent, position is now closed so we decrement point
     if my != cell.owner:
-      return None, -1
+      return None, -.5
 
     return point, None
 
