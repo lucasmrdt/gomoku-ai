@@ -5,10 +5,11 @@ from settings import DEFAULT_BOARD_SIZE
 class Cell:
   BALANCE = 0.85
   DIRECTIONS = [
-    ((0, 1), (0, -1)),  # Vertical line
-    ((1, 0), (-1, 0)),  # Horizontal line
-    ((1, 1), (-1, -1)), # Diagonal line (up-right to bottom-left)
-    ((1, -1), (1, -1)), # Diagonal line (up-left to bottom-right)
+    # format (y, x)
+    ((1, 0), (-1, 0)),  # Vertical line
+    ((0, 1), (0, -1)),  # Horizontal line
+    ((-1, 1), (1, -1)), # Diagonal line (up-right to bottom-left)
+    ((-1, -1), (1, 1)), # Diagonal line (up-left to bottom-right)
   ]
 
   def __init__(self):
@@ -30,7 +31,7 @@ class Cell:
     weights = []
 
     for player_a, player_b in players_orders:
-      active_directions = filter(lambda x: x[player_a], self.points_by_directions)
+      active_directions = list(filter(lambda x: x[player_a], self.points_by_directions))
       total_points = sum(abs(direction[player_a] - min(1, direction[player_b])) for direction in active_directions)
       weight = total_points * self.BALANCE**len(active_directions)
       weights.append(weight)
@@ -59,7 +60,7 @@ class Board(ABoard):
   def reset(self):
     self.initialize()
 
-  def player_move(self, player: Player, x: int, y: int):
+  def player_move(self, player, x, y):
     assert self.matrix, 'board must be initialized'
     assert isinstance(player, Player), 'player must be instance of Player'
     assert player.isSomeone(), 'player must be OPPONENT or ME'

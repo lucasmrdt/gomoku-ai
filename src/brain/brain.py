@@ -16,7 +16,7 @@ class Brain(ABrain):
   def make_move(self, x: int, y: int):
     self.board.player_move(Player.ME, x, y)
 
-  def compute_new_way_weight(self, default_player, position, direction_index, way):
+  def get_incrementation_from_way(self, player, position, direction_index, way):
     # Take the current cell
     x, y = position
     cell = self.board.matrix[y][x]
@@ -28,29 +28,39 @@ class Brain(ABrain):
     neighbour_cell = self.board.matrix[neighbour_y][neighbour_x]
 
     # Get the neighbour owner
-    neighbour_owner = neighbour_cell.owner if neighbour_cell.owner != Player.NOBODY else default_player
+    neighbour_owner = neighbour_cell.owner if neighbour_cell.owner != Player.NOBODY else player
 
     # Get the neighbour_owner value and her opponent value to.
-    neighbour_value = cell.points_by_directions[direction_index][neighbour_owner.index()]
-    opponent_value = cell.points_by_directions[direction_index][neighbour_owner.opponent_index()]
+    player_value = cell.points_by_directions[direction_index][player.index()]
+    neighbour_value = neighbour_cell.points_by_directions[direction_index][neighbour_owner.index()]
+    opponent_value = neighbour_cell.points_by_directions[direction_index][neighbour_owner.opponent_index()]
 
-    # Compute the new line weight
-    malus = min(1, opponent_value) # Malus can only be 0 or 1.
-    return neighbour_value - malus
+    if neighbour_cell.owner == Player.NOBODY:
+      incr = player_value
+    else:
+      incr = 0
 
-  def update_new_way_weight(self, default_player, position, direction_index, way):
+    if neighbour_owner == Player.NOBODY or neighbour_owner == player:
+      incr += (opponent_value == 0)
+    else:
+      incr += -1
+
+    return incr
+
+  def update_new_way_point(self, default_player, position, direction_index, way):
     player = None
     board_size = self.board.size
     matrix = self.board.matrix
-    new_way_weight = self.compute_new_way_weight(default_player, position, direction_index, way)
+    incr = self.get_incrementation_from_way(default_player, position, direction_index, way)
 
     while True:
+      position = tuple(map(operator.add, position, way))
       x, y = position
-      cell = matrix[y][x]
-
       # If position is outside the board we stop propagate new way value.
       if not self.board.is_valid_coordinate(x, y):
         break
+
+      cell = matrix[y][x]
 
       # We need to track in which player we propagate the new way value.
       if not player:
@@ -58,10 +68,14 @@ class Brain(ABrain):
 
       # If we found an different player that the first met, we stop propagate the new way value.
       if cell.owner != player:
+        if cell.is_free():
+          cell.points_by_directions[direction_index][player.index()] += incr
+          cell.compute_weight()
         break
 
-      cell.points_by_directions[direction_index][player.index()] = new_way_weight
-      position = map(operator.add, position, way)
+      cell.points_by_directions[direction_index][player.index()] += incr
+      cell.compute_weight()
+
 
   def on_player_move(self, player, x, y):
     matrix = self.board.matrix
@@ -69,12 +83,13 @@ class Brain(ABrain):
     position = x, y
 
     for direction_index, direction in enumerate(Cell.DIRECTIONS):
+      for way in direction:
+        self.update_new_way_point(player, position, direction_index, way)
+
       # Increment each directions of player cell
       points_by_directions = matrix[y][x].points_by_directions
       points_by_directions[direction_index][player_index] += 1
 
-      for way in direction:
-        self.update_new_way_weight(player, position, direction_index, way)
 
   def get_mandatory_moves(self):
     imminent_threats = []
@@ -82,14 +97,14 @@ class Brain(ABrain):
     target_x = 0
     target_y = 0
 
-    for x, row in enumerate(self.board.matrix):
-      for y, cell in enumerate(row):
+    for y, row in enumerate(self.board.matrix):
+      for x, cell in enumerate(row):
         if not cell.is_free():
           continue
         for points in cell.points_by_directions:
-          if points[0] == 4:
+          if points[0] >= 3:
             return x, y
-          elif points[1] == 4:
+          elif points[1] >= 3:
             imminent_threats.append([x, y])
         if cell.weight > target_weight:
           target_weight = cell.weight
@@ -111,5 +126,5 @@ class Brain(ABrain):
         selected_position = random.randint(0, len(board.avaible_positions)-1)
         x, y = board.avaible_positions[selected_position]
 
-    self.make_move(x, y)
-    return x, y
+    self.make_move(1, 1)
+    return 1, 1
