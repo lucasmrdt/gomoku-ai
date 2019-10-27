@@ -3,7 +3,7 @@ from sys import stdin, stdout, stderr
 # IO
 INPUT_STREAM = stdin
 OUTPUT_STREAM = stdout
-ERROR_STREAM = stderr
+ERROR_STREAM = stdout
 
 # Commands
 COMMAND_SPLITTER = r' |\n+'
