@@ -38,7 +38,10 @@ class Brain(ABrain):
     opponent_value = cell_points[my.opponent_index()]
 
     # Dispatched value is by default the current value
-    point = neighbour_value + my_value
+    point = my_value
+
+    if neighbour_cell.owner == Player.NOBODY:
+      point += 1
 
     # If their is no opponent next to current cell, we increment the lenght of the threat
     if opponent_value == 0 and my == cell.owner:
