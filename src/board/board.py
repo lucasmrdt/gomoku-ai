@@ -10,7 +10,8 @@ class Board(ABoard):
   def listen_player_move(self, fct):
     self.move_listeners.append(fct)
 
-  def set_size(self, size):
+  def initialize(self, size=None):
+    size = size if size else self.size
     assert 0 < size <= 20, 'Size must be contains in ]0, 20]'
 
     self.size = size
@@ -32,7 +33,7 @@ class Board(ABoard):
 
   def clear_board(self):
     assert self.size, 'size must be specified before clear'
-    self.matrix = [[Player.NOBODY for _ in range(self.size)] for _ in range(self.size)]
+    self.initialize()
 
   def refresh_board(self, new_positions):
     assert self.matrix, 'you must first initialize the board size'

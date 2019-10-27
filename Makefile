@@ -5,8 +5,13 @@ $(NAME):
 
 all: $(NAME)
 
+build:	$(NAME)
+	pyinstaller.exe $(NAME) --onefile --name $(NAME).exe
+
 clean:
 	rm -rf **/__pycache__
+	rm -rf build
+	rm -rf dist
 
 fclean: clean
 	rm -f $(NAME)

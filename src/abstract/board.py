@@ -14,7 +14,7 @@ class ABoard(ABC):
     """
 
   @abstractmethod
-  def set_size(self, size):
+  def initialize(self, size):
     """Set the board size.
 
     size -- the size integer (must be > 0)

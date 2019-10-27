@@ -10,6 +10,9 @@ class Brain(ABrain):
     board.listen_player_move(self.on_player_make_move)
     self.board = board
 
+  def reset(self):
+    self.suggested_moves = set()
+
   def make_move(self, x: int, y: int):
     self.board.player_move(Player.ME, x, y)
 
@@ -31,7 +34,7 @@ class Brain(ABrain):
     # Not implemented yet, just make random move
     board = self.board
 
-    if len(self.suggested_moves):
+    if self.suggested_moves:
       selected_position = random.randint(0, len(self.suggested_moves)-1)
       x, y = list(self.suggested_moves)[selected_position]
     else:
