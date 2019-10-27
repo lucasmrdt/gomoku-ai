@@ -4,6 +4,14 @@ class ABoard(ABC):
   matrix: [[]] # Board matrix
   size: int # Board size
   avaible_positions: [int] # All avaible positions
+  move_listeners: [] # Move listeners
+
+  @abstractmethod
+  def listen_player_move(self, fct):
+    """Listen all player move.
+
+    fct -- Listener called with arguments (player, x, y)
+    """
 
   @abstractmethod
   def set_size(self, size):
@@ -40,4 +48,9 @@ class ABoard(ABC):
   @abstractmethod
   def is_empty(self) -> bool:
     """Test if board is empty."""
+    raise NotImplementedError()
+
+  @abstractmethod
+  def is_free(self, x, y) -> bool:
+    """Test if cell at (x, y) in board is free."""
     raise NotImplementedError()

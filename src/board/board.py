@@ -5,6 +5,10 @@ class Board(ABoard):
   matrix = None
   size = None
   avaible_positions = []
+  move_listeners = []
+
+  def listen_player_move(self, fct):
+    self.move_listeners.append(fct)
 
   def set_size(self, size):
     assert 0 < size <= 20, 'Size must be contains in ]0, 20]'
@@ -23,14 +27,12 @@ class Board(ABoard):
 
     self.matrix[y][x] = player
     self.avaible_positions.remove((x, y))
+    for listener in self.move_listeners:
+      listener(player, x, y)
 
   def clear_board(self):
     assert self.size, 'size must be specified before clear'
     self.matrix = [[Player.NOBODY for _ in range(self.size)] for _ in range(self.size)]
-
-  def is_empty(self):
-    assert self.matrix, 'you must first initialize the board size'
-    return all(all(player == Player.NOBODY for player in line) for line in self.matrix)
 
   def refresh_board(self, new_positions):
     assert self.matrix, 'you must first initialize the board size'
@@ -43,3 +45,11 @@ class Board(ABoard):
       assert player.isSomeone(), 'player must be OPPONENT or ME'
 
       self.matrix[y][x] = player
+
+  def is_empty(self):
+    assert self.matrix, 'you must first initialize the board size'
+    return all(all(player == Player.NOBODY for player in line) for line in self.matrix)
+
+  def is_free(self, x, y):
+    assert self.matrix, 'you must first initialize the board size'
+    return self.matrix[y][x] == Player.NOBODY
