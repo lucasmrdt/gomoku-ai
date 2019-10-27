@@ -3,7 +3,7 @@ from abstract import ABoard
 from settings import DEFAULT_BOARD_SIZE
 
 class Cell:
-  BALANCE = 0.85
+  BALANCE = 0.8
   DIRECTIONS = [
     # format (y, x)
     ((1, 0), (-1, 0)),  # Vertical line
@@ -18,7 +18,8 @@ class Cell:
     self.weight = 0
 
   def __str__(self):
-    return '[' + ','.join(':'.join(map(str, points)) for points in self.points_by_directions) + ']'
+    return '%.1f' % self.weight if self.owner == Player.NOBODY else f' {str(self.owner)} '
+    # return '[' + ','.join(':'.join(map(str, points)) for points in self.points_by_directions) + ']'
 
   def is_free(self):
     return self.owner == Player.NOBODY
@@ -33,9 +34,9 @@ class Cell:
     for player_a, player_b in players_orders:
       active_directions = list(filter(lambda x: x[player_a], self.points_by_directions))
       total_points = sum(abs(direction[player_a] - min(1, direction[player_b])) for direction in active_directions)
-      weight = total_points * self.BALANCE**len(active_directions)
+      weight = total_points * self.BALANCE**max(0, len(active_directions)-1)
       weights.append(weight)
-    a, b = sorted(weights)
+    a, b = sorted(weights, reverse=True)
     self.weight = a + b*.15
 
 class Board(ABoard):

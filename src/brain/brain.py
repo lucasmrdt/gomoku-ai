@@ -31,9 +31,8 @@ class Brain(ABrain):
     neighbour_owner = neighbour_cell.owner if neighbour_cell.owner != Player.NOBODY else player
 
     # Get the neighbour_owner value and her opponent value to.
-    player_value = cell.points_by_directions[direction_index][player.index()]
-    neighbour_value = neighbour_cell.points_by_directions[direction_index][neighbour_owner.index()]
-    opponent_value = neighbour_cell.points_by_directions[direction_index][neighbour_owner.opponent_index()]
+    player_value = cell.points_by_directions[direction_index][neighbour_owner.index()]
+    opponent_value = cell.points_by_directions[direction_index][neighbour_owner.opponent_index()]
 
     if neighbour_cell.owner == Player.NOBODY:
       incr = player_value
@@ -102,9 +101,9 @@ class Brain(ABrain):
         if not cell.is_free():
           continue
         for points in cell.points_by_directions:
-          if points[0] >= 3:
+          if points[1] >= 3:
             return x, y
-          elif points[1] >= 3:
+          elif points[0] >= 3:
             imminent_threats.append([x, y])
         if cell.weight > target_weight:
           target_weight = cell.weight
@@ -126,5 +125,5 @@ class Brain(ABrain):
         selected_position = random.randint(0, len(board.avaible_positions)-1)
         x, y = board.avaible_positions[selected_position]
 
-    self.make_move(1, 1)
-    return 1, 1
+    self.make_move(x, y)
+    return x, y
