@@ -79,14 +79,14 @@ class Brain(ABrain):
             cell.points_by_directions[direction_index][player.index()] += incr
           else:
             cell.points_by_directions[direction_index][player.index()] = point
-          cell.compute_weight()
+            cell.compute_weight()
         break
 
       if incr:
         cell.points_by_directions[direction_index][player.index()] += incr
       else:
         cell.points_by_directions[direction_index][player.index()] = point
-      cell.compute_weight()
+        cell.compute_weight()
 
 
   def on_player_move(self, player, x, y):
