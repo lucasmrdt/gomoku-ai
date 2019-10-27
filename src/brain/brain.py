@@ -16,7 +16,7 @@ class Brain(ABrain):
   def make_move(self, x: int, y: int):
     self.board.player_move(Player.ME, x, y)
 
-  def get_incrementation_from_way(self, player, position, direction_index, way):
+  def get_point_from_way(self, position, direction_index, way):
     # Take the current cell
     x, y = position
     cell = self.board.matrix[y][x]
@@ -24,33 +24,40 @@ class Brain(ABrain):
     # Take the neighbour cell from the direction
     neighbour_x, neighbour_y = map(operator.add, position, way)
     if not self.board.is_valid_coordinate(neighbour_x, neighbour_y):
-      return 0
+      return 0, 0
     neighbour_cell = self.board.matrix[neighbour_y][neighbour_x]
 
     # Get the neighbour owner
-    neighbour_owner = neighbour_cell.owner if neighbour_cell.owner != Player.NOBODY else player
+    cell_points = cell.points_by_directions[direction_index]
+    neighbour_points = neighbour_cell.points_by_directions[direction_index]
+    my = neighbour_cell.owner if neighbour_cell.owner != Player.NOBODY else cell.owner
 
     # Get the neighbour_owner value and her opponent value to.
-    player_value = cell.points_by_directions[direction_index][neighbour_owner.index()]
-    opponent_value = cell.points_by_directions[direction_index][neighbour_owner.opponent_index()]
+    neighbour_value = neighbour_points[my.index()]
+    my_value = cell_points[my.index()]
+    opponent_value = cell_points[my.opponent_index()]
+
+    # Dispatched value is by default the current value
+    point = my_value
 
     if neighbour_cell.owner == Player.NOBODY:
-      incr = player_value
-    else:
-      incr = 0
+      point += neighbour_value
 
-    if neighbour_owner == Player.NOBODY or neighbour_owner == player:
-      incr += (opponent_value == 0)
-    else:
-      incr += -1
+    # If their is no opponent next to current cell, we increment the lenght of the threat
+    if opponent_value == 0 and my == cell.owner:
+      point += 1
 
-    return incr
+    # If the move is made by the opponent, position is now closed so we decrement point
+    if my != cell.owner:
+      return None, -.5
+
+    return point, None
 
   def update_new_way_point(self, default_player, position, direction_index, way):
     player = None
     board_size = self.board.size
     matrix = self.board.matrix
-    incr = self.get_incrementation_from_way(default_player, position, direction_index, way)
+    point, incr = self.get_point_from_way(position, direction_index, way)
 
     while True:
       position = tuple(map(operator.add, position, way))
@@ -68,12 +75,18 @@ class Brain(ABrain):
       # If we found an different player that the first met, we stop propagate the new way value.
       if cell.owner != player:
         if cell.is_free():
-          cell.points_by_directions[direction_index][player.index()] += incr
-          cell.compute_weight()
+          if incr:
+            cell.points_by_directions[direction_index][player.index()] += incr
+          else:
+            cell.points_by_directions[direction_index][player.index()] = point
+            cell.compute_weight()
         break
 
-      cell.points_by_directions[direction_index][player.index()] += incr
-      cell.compute_weight()
+      if incr:
+        cell.points_by_directions[direction_index][player.index()] += incr
+      else:
+        cell.points_by_directions[direction_index][player.index()] = point
+        cell.compute_weight()
 
 
   def on_player_move(self, player, x, y):
@@ -111,19 +124,21 @@ class Brain(ABrain):
           target_y = y
     if imminent_threats:
       return imminent_threats[0]
+    elif target_weight == 0:
+      return self.board.size//2, self.board.size//2
     return target_x, target_y
 
   def turn(self):
     # Not implemented yet, just make random move
     board = self.board
     x, y = self.get_mandatory_moves()
-    if not x or not y:
-      if self.suggested_moves:
-        selected_position = random.randint(0, len(self.suggested_moves)-1)
-        x, y = list(self.suggested_moves)[selected_position]
-      else:
-        selected_position = random.randint(0, len(board.avaible_positions)-1)
-        x, y = board.avaible_positions[selected_position]
+    # if not x or not y:
+    #   if self.suggested_moves:
+    #     selected_position = random.randint(0, len(self.suggested_moves)-1)
+    #     x, y = list(self.suggested_moves)[selected_position]
+    #   else:
+    #     selected_position = random.randint(0, len(board.avaible_positions)-1)
+    #     x, y = board.avaible_positions[selected_position]
 
     self.make_move(x, y)
     return x, y
