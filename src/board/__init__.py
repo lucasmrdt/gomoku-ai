@@ -1,2 +1,2 @@
-from .board import Board
+from .board import Board, Cell
 from .player import Player
