@@ -10,4 +10,12 @@ INFORMATIONS = {
   'country': COUNTRY
 }
 
+# Debug
+try:
+  import websockets
+  DEBUG_MODE = True
+except:
+  DEBUG_MODE = False
+DEBUG_PORT = 1234
+
 DEFAULT_BOARD_SIZE = 19

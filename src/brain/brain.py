@@ -1,144 +1,152 @@
 import operator
-import random
 
 from board import Player, Cell
 from abstract import ABrain, ABoard
 
 class Brain(ABrain):
   def __init__(self, board: ABoard):
-    board.listen_player_move(self.on_player_move)
+    board.listen_move_player(self.__on_move_player)
     self.board = board
-    self.suggested_moves = set()
 
-  def reset(self):
-    self.suggested_moves = set()
+  def __get_rewards_from_angle(self, position, direction_index, angle):
+    """Get reward from angle. An angle is an oriented direction.
+    Eg. Up is the angle of vertical direction.
 
-  def make_move(self, x: int, y: int):
-    self.board.player_move(Player.ME, x, y)
-
-  def get_point_from_way(self, position, direction_index, way):
-    # Take the current cell
+    position -- (x, y) position of player
+    direction_index -- the index of direction in Cell.DIRECTIONS
+    angle -- (x, y) tupple determine the orientation of direction
+    return -- new_rewards, rewards (new_rewards is used to override
+              previous cell point whereas the reward incrementator)
+    """
     x, y = position
+
+    # Take the actual cell at position
     cell = self.board.matrix[y][x]
+    cell_owner = cell.owner
+    cell_value = cell.points_by_directions[direction_index][cell_owner.index()]
 
-    # Take the neighbour cell from the direction
-    neighbour_x, neighbour_y = map(operator.add, position, way)
-    if not self.board.is_valid_coordinate(neighbour_x, neighbour_y):
+    # Take the neighbour at angle
+    current = map(operator.add, position, angle)
+    current = self.board.get_cell_at(*current)
+    if not current:
       return 0, 0
-    neighbour_cell = self.board.matrix[neighbour_y][neighbour_x]
+    current_owner = cell.owner if current.is_free() else current.owner
+    current_value = current.points_by_directions[direction_index][current_owner.index()]
 
-    # Get the neighbour owner
-    cell_points = cell.points_by_directions[direction_index]
-    neighbour_points = neighbour_cell.points_by_directions[direction_index]
-    my = neighbour_cell.owner if neighbour_cell.owner != Player.NOBODY else cell.owner
+    # Take the neighbour at opposite angle
+    opposite = map(operator.sub, position, angle)
+    opposite = self.board.get_cell_at(*opposite)
+    opposite_owner = opposite.owner if opposite and opposite.is_busy() else cell.owner
 
-    # Get the neighbour_owner value and her opponent value to.
-    neighbour_value = neighbour_points[my.index()]
-    my_value = cell_points[my.index()]
-    opponent_value = cell_points[my.opponent_index()]
+    # If we put a cell next to an enemy malus of -0.5 is spreaded :
+    # Take the owner is "O", we add new cell so we spread 1 + -0.5(malus) = 0.5
+    # -.5 <- [X][P][O] -> .5 (1 - .5)
+    if current_owner != cell_owner or current_owner != opposite_owner:
+      return 0, (.5 if current_owner == cell_owner else -.5)
 
-    # Dispatched value is by default the current value
-    point = my_value
+    # If the opposite cell is free we spread 1 :
+    # 1 <- [X][X][P][.]
+    #         cur   opp
+    if opposite and opposite.is_free():
+      return 0, 1
 
-    if neighbour_cell.owner == Player.NOBODY:
-      point += neighbour_value
+    # If the current cell is free we spread cell_value + 1 :
+    # [X][X][P][.] -> 3
+    #    opp   curr
+    if current.is_free():
+      return 0, cell_value + 1
 
-    # If their is no opponent next to current cell, we increment the lenght of the threat
-    if opponent_value == 0 and my == cell.owner:
-      point += 1
+    # Else we replace the target value by cell_value + 1 :
+    # [X][X][P][X][X] -> 5
+    return cell_value + 1, 0
 
-    # If the move is made by the opponent, position is now closed so we decrement point
-    if my != cell.owner:
-      return None, -.5
+  def __update_points_from_angle(self, current_player, position, direction_index, angle):
+    """Update points from an oriented direction and an position. This function
+    will compute an reward for the angle and than spread it out following the oriented direction.
+    When we reach an extremium we apply the reward to the extremium cell.
 
-    return point, None
-
-  def update_new_way_point(self, default_player, position, direction_index, way):
+    current_player -- cell owner
+    position -- (x, y) position of player
+    direction_index -- the index of direction in Cell.DIRECTIONS
+    angle -- (x, y) tupple determine the orientation of direction
+    """
     player = None
+    points = None
+    cell = None
     board_size = self.board.size
     matrix = self.board.matrix
-    point, incr = self.get_point_from_way(position, direction_index, way)
+
+    new_rewards, rewards = self.__get_rewards_from_angle(position, direction_index, angle)
 
     while True:
-      position = tuple(map(operator.add, position, way))
+      position = tuple(map(operator.add, position, angle))
       x, y = position
-      # If position is outside the board we stop propagate new way value.
+
+      # If position is outside the board : STOP
       if not self.board.is_valid_coordinate(x, y):
         break
 
       cell = matrix[y][x]
+      points = cell.points_by_directions[direction_index]
 
-      # We need to track in which player we propagate the new way value.
+      # Player is the current player which has played (the first cell)
       if not player:
-        player = cell.owner if cell.owner != Player.NOBODY else default_player
+        player = cell.owner if cell.is_busy() else current_player
 
-      # If we found an different player that the first met, we stop propagate the new way value.
+      # If we found an different player that the current : STOP
       if cell.owner != player:
-        if cell.is_free():
-          if incr:
-            cell.points_by_directions[direction_index][player.index()] += incr
-          else:
-            cell.points_by_directions[direction_index][player.index()] = point
-            cell.compute_weight()
         break
 
-      if incr:
-        cell.points_by_directions[direction_index][player.index()] += incr
-      else:
-        cell.points_by_directions[direction_index][player.index()] = point
-        cell.compute_weight()
+    if not cell or not points or not cell.is_free():
+      return None
 
+    if rewards:
+      points[player.index()] += rewards
+    elif new_rewards:
+      points[player.index()] = new_rewards
+    cell.compute_weight()
+    return cell
 
-  def on_player_move(self, player, x, y):
+  def __on_move_player(self, player, x, y):
+    """When a player made move we refresh the weight related to the played player's position."""
     matrix = self.board.matrix
-    player_index = player.index()
     position = x, y
+    cell = matrix[y][x]
+    points_by_directions = cell.points_by_directions
 
+    # The played cell is no longer stalked
+    if cell in self.board.stalked_cells:
+      self.board.stalked_cells.remove(cell)
+
+    # Update points for each angles of each directions from the played point (x, y)
     for direction_index, direction in enumerate(Cell.DIRECTIONS):
-      for way in direction:
-        self.update_new_way_point(player, position, direction_index, way)
+      for angle in direction:
+        updated_cell = self.__update_points_from_angle(player, position, direction_index, angle)
+        if updated_cell and not updated_cell in self.board.stalked_cells:
+          self.board.stalked_cells.add(updated_cell)
 
-      # Increment each directions of player cell
-      points_by_directions = matrix[y][x].points_by_directions
-      points_by_directions[direction_index][player_index] += 1
+      # Increment each directions points of player cell
+      points_by_directions[direction_index][player.index()] += 1
 
-
-  def get_mandatory_moves(self):
-    imminent_threats = []
-    target_weight = -1
-    target_x = 0
-    target_y = 0
-
-    for y, row in enumerate(self.board.matrix):
-      for x, cell in enumerate(row):
-        if not cell.is_free():
-          continue
-        for points in cell.points_by_directions:
-          if points[1] >= 3:
-            return x, y
-          elif points[0] >= 3:
-            imminent_threats.append([x, y])
-        if cell.weight > target_weight:
-          target_weight = cell.weight
-          target_x = x
-          target_y = y
-    if imminent_threats:
-      return imminent_threats[0]
-    elif target_weight == 0:
-      return self.board.size//2, self.board.size//2
-    return target_x, target_y
+  def __get_next_move(self):
+    """Get the next move. Critical moves are prioritized."""
+    criticals = []
+    for cell in self.board.stalked_cells:
+      if cell.is_critical():
+        criticals.append(cell)
+    if criticals:
+      return max(criticals, key=lambda x: x.max_points)
+    return max(self.board.stalked_cells) if self.board.stalked_cells else None
 
   def turn(self):
-    # Not implemented yet, just make random move
-    board = self.board
-    x, y = self.get_mandatory_moves()
-    # if not x or not y:
-    #   if self.suggested_moves:
-    #     selected_position = random.randint(0, len(self.suggested_moves)-1)
-    #     x, y = list(self.suggested_moves)[selected_position]
-    #   else:
-    #     selected_position = random.randint(0, len(board.avaible_positions)-1)
-    #     x, y = board.avaible_positions[selected_position]
+    board_size = self.board.size
+    cell = self.__get_next_move()
 
-    self.make_move(x, y)
+    # If weight is null, we're the first to play
+    if not cell:
+      x, y = board_size//2, board_size//2
+    else:
+      x, y = cell.x, cell.y
+
+    self.board.move_player(Player.ME, x, y)
     return x, y

@@ -17,6 +17,6 @@ class CMD_TURN(Command):
     except ValueError:
       raise InvalidParamsCommand(f'coordinates must be integers')
 
-    board.player_move(Player.OPPONENT, opponent_x, opponent_y)
+    board.move_player(Player.OPPONENT, opponent_x, opponent_y)
     x, y = self.game.brain.turn()
     self.send_position(x, y)

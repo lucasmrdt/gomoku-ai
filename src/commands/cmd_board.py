@@ -20,7 +20,7 @@ class CMD_BOARD(Command):
 
       try:
         player = Player(field)
-        assert player.isSomeone()
+        assert player.is_someone()
       except (ValueError, AssertionError):
         raise InvalidParamsCommand(f'invalid type of player, {field} is not recognized')
 

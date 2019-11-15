@@ -6,16 +6,9 @@ class ABrain(ABC):
   board: ABoard
 
   @abstractmethod
-  def reset(self):
-    """Reset the brain."""
-    raise NotImplementedError()
+  def turn(self) -> (int, int):
+    """Must choose a good position, play it and return it.
 
-  @abstractmethod
-  def make_move(self) -> (int, int):
-    """Make the next turn and return the choice coordinnate."""
-    raise NotImplementedError()
-
-  @abstractmethod
-  def on_player_move(self, player, x, y) -> (int, int):
-    """Event handler when player made move."""
+    return -- x, y (chosen position)
+    """
     raise NotImplementedError()

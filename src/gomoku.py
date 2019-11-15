@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
 import traceback
+import threading
 
 from board import Board, Player
 from brain import Brain
 from protocol import Protocol
 from utils import singleton
+from settings import DEBUG_MODE
 from abstract import AGame
 
 @singleton
@@ -26,4 +28,9 @@ class Gomoku(AGame):
     self.is_running = False
 
 if __name__ == '__main__':
-  Gomoku.start()
+    if DEBUG_MODE:
+      from debug import Debug
+      threading.Thread(target=Gomoku.start).start()
+      Debug(Gomoku).start()
+    else:
+      Gomoku.start()

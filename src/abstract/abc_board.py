@@ -3,8 +3,8 @@ from abc import ABC, abstractmethod
 class ABoard(ABC):
   matrix: [[]] # Board matrix
   size: int # Board size
-  avaible_positions: [int] # All avaible positions
   move_listeners: [] # Move listeners
+  stalked_cells: set() # All cells wich are linked to played cells
 
   @abstractmethod
   def set_size(self, size):
@@ -15,24 +15,18 @@ class ABoard(ABC):
     raise NotImplementedError()
 
   @abstractmethod
-  def initialize(self):
-    """Initialize the matrix board and availables_moves."""
+  def reset(self):
+    """Reset properties of board."""
     raise NotImplementedError()
 
-
   @abstractmethod
-  def player_move(self, player, x, y):
+  def move_player(self, player, x, y):
     """Move the player (ME or OPPONENT) to (x, y) on the board.
 
     player -- the player (ME or OPPONENT)
     x      -- x coordinate of the move
     y      -- y coordinate of the move
     """
-    raise NotImplementedError()
-
-  @abstractmethod
-  def reset(self):
-    """Clear the entire board."""
     raise NotImplementedError()
 
   @abstractmethod
@@ -43,13 +37,27 @@ class ABoard(ABC):
     """
     raise NotImplementedError()
 
+  @abstractmethod
+  def reset(self):
+    """Clear the entire board."""
+    raise NotImplementedError()
 
   @abstractmethod
-  def listen_player_move(self, fct):
+  def listen_move_player(self, fct):
     """Listen all player move.
 
     fct -- Listener called with arguments (player, x, y)
     """
+
+  @abstractmethod
+  def get_cell_at(self, x, y):
+    """Get cell at x y.
+
+    x -- x position
+    y -- y position
+    return -- Cell or None if not found.
+    """
+    raise NotImplementedError()
 
   @abstractmethod
   def is_empty(self) -> bool:
