@@ -1,4 +1,7 @@
-# Gomoku AI
+# ⚫️⚪️ Gomoku AI
+![CrossPlatform-ok](https://img.shields.io/static/v1?label=cross-platform&message=✔&color=green)
+
+![screenshot](./assets/screenshot.png)
 
 ## 🧠 Gomoku Brain
 > You must be in [`gomoku/`](./gomoku) folder.
