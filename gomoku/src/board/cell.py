@@ -70,12 +70,16 @@ class Cell:
 
   def dump(self):
     return {
-      'x': self.x,
-      'y': self.y,
-      'horizontal': self.points_by_directions[Direction.HORIZONTAL.value],
-      'vertical': self.points_by_directions[Direction.VERTICAL.value],
-      'leftCorner': self.points_by_directions[Direction.LEFT_CORNER.value],
-      'rightCorner': self.points_by_directions[Direction.RIGHT_CORNER.value],
+      'position': {
+        'x': self.x,
+        'y': self.y,
+      },
+      'neighbours': {
+        'horizontal': self.points_by_directions[Direction.HORIZONTAL.value],
+        'vertical': self.points_by_directions[Direction.VERTICAL.value],
+        'leftCorner': self.points_by_directions[Direction.LEFT_CORNER.value],
+        'rightCorner': self.points_by_directions[Direction.RIGHT_CORNER.value],
+      },
       'isFree': self.is_free(),
       'weight': self.weight,
       'owner': self.owner.value,

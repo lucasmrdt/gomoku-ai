@@ -1,11 +1,14 @@
 NAME	=	 pbrain-gomoku-ai
 
 $(NAME):
-	ln -s src/gomoku.py $(NAME)
+	ln -sf src/gomoku.py $(NAME)
 
-all: $(NAME)
+build: $(NAME)
 
-build:	$(NAME)
+install:
+	pip3 install -r requirements.txt
+
+build-exe:	$(NAME)
 	pyinstaller.exe $(NAME) --onefile --name $(NAME).exe
 
 clean:

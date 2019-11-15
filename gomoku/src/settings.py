@@ -14,7 +14,7 @@ INFORMATIONS = {
 try:
   import websockets
   DEBUG_MODE = True
-except:
+except ImportError:
   DEBUG_MODE = False
 DEBUG_PORT = 1234
 
